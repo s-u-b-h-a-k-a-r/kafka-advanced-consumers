@@ -14,40 +14,32 @@ import org.slf4j.Logger;
 
 import com.kafka.learning.producer.model.StockPrice;
 
-public class SeekToLatestRecordsConsumerRebalanceListener
-                                            implements ConsumerRebalanceListener {
+public class SeekToLatestRecordsConsumerRebalanceListener implements ConsumerRebalanceListener {
 
     private final Consumer<String, StockPrice> consumer;
     private static final Logger logger = getLogger(SimpleStockPriceConsumer.class);
 
-    public SeekToLatestRecordsConsumerRebalanceListener(
-                                    final Consumer<String, StockPrice> consumer) {
+    public SeekToLatestRecordsConsumerRebalanceListener(final Consumer<String, StockPrice> consumer) {
         this.consumer = consumer;
     }
 
     @Override
     public void onPartitionsAssigned(final Collection<TopicPartition> partitions) {
         final Map<TopicPartition, Long> maxOffsets = getMaxOffsetsFromDatabase();
-        maxOffsets.entrySet().forEach(
-                entry -> partitions.forEach(topicPartition -> {
-                    if (entry.getKey().equals(topicPartition)) {
-                        long maxOffset = entry.getValue();
+        maxOffsets.entrySet().forEach(entry -> partitions.forEach(topicPartition -> {
+            if (entry.getKey().equals(topicPartition)) {
+                long maxOffset = entry.getValue();
 
-                        // Call to consumer.seek to move to the partition.
-                        consumer.seek(topicPartition, maxOffset + 1);
+                // Call to consumer.seek to move to the partition.
+                consumer.seek(topicPartition, maxOffset + 1);
 
-                        displaySeekInfo(topicPartition, maxOffset);
-                    }
-                }));
+                displaySeekInfo(topicPartition, maxOffset);
+            }
+        }));
     }
 
     private void displaySeekInfo(TopicPartition topicPartition, long maxOffset) {
-        logger.info(String.format("################################" +
-                        "Moving to offset %d " +
-                        "for partition/topic-%s-part-%d\n",
-                maxOffset,
-                topicPartition.topic(),
-                topicPartition.partition()));
+        logger.info(String.format("################################" + "Moving to offset %d " + "for partition/topic-%s-part-%d\n", maxOffset, topicPartition.topic(), topicPartition.partition()));
     }
 
     private Map<TopicPartition, Long> getMaxOffsetsFromDatabase() {
@@ -57,8 +49,7 @@ public class SeekToLatestRecordsConsumerRebalanceListener
         records.forEach(stockPriceRecord -> {
             final Long offset = maxOffsets.getOrDefault(stockPriceRecord.getTopicPartition(), -1L);
             if (stockPriceRecord.getOffset() > offset) {
-                maxOffsets.put(stockPriceRecord.getTopicPartition(),
-                        stockPriceRecord.getOffset());
+                maxOffsets.put(stockPriceRecord.getTopicPartition(), stockPriceRecord.getOffset());
             }
         });
         return maxOffsets;

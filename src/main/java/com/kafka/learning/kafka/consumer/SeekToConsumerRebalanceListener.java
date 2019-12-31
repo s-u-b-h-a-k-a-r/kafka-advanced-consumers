@@ -39,6 +39,8 @@ public class SeekToConsumerRebalanceListener implements ConsumerRebalanceListene
         case LOCATION: // Seek to a given location
             partitions.forEach(topicPartition -> consumer.seek(topicPartition, location));
             break;
+        default:
+            break;
         }
     }
 
